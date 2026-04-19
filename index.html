@@ -394,41 +394,40 @@ function startFirebaseListener() {
   var statusEl = document.getElementById('statusBar');
   var liveEl   = document.getElementById('liveDot');
 
-  // מאזין לאוסף "records" ומסנן ליום היום
+  // ─── דיווחי היום ───
   db.collection('records')
-    .where('dateKey', '==', today)
     .onSnapshot(function(snapshot) {
-      // הצלחה — מחובר
       statusEl.className = 'status-bar connected';
-      statusEl.textContent = '🟢 מחובר ל-Firebase — ' + snapshot.size + ' דיווחים היום';
       liveEl.style.display = 'flex';
 
       records = [];
       snapshot.forEach(function(doc) {
         records.push(doc.data());
       });
-      // מיון לפי זמן (חדש ראשון) — בצד הלקוח, ללא צורך ב-index
-      records.sort(function(a, b) { return b.id - a.id; });
+      // סינון ומיון בצד הלקוח — ללא index
+      records = records
+        .filter(function(r) { return r.dateKey === today; })
+        .sort(function(a, b) { return b.id - a.id; });
 
+      statusEl.textContent = '🟢 מחובר — ' + records.length + ' דיווחים היום';
       updateCount();
       if (recOpen) renderRec();
 
     }, function(err) {
-      // שגיאה
       statusEl.className = 'status-bar error';
       statusEl.textContent = '🔴 שגיאת חיבור: ' + err.message;
       liveEl.style.display = 'none';
-      console.error('Firebase error:', err);
     });
 
-  // האזנה לארכיון (דיווחים מחודשים קודמים)
+  // ─── ארכיון חודשי ───
   db.collection('archive')
-    .where('dateKey', '!=', today)
-    .limit(500)
     .onSnapshot(function(snapshot) {
       archive = [];
       snapshot.forEach(function(doc) { archive.push(doc.data()); });
-      archive.sort(function(a,b){return b.id-a.id;});
+      archive.sort(function(a, b) { return b.id - a.id; });
+    }, function(err) {
+      console.warn('Archive error:', err);
+    });
     }, function(err) {
       console.warn('Archive listener error:', err);
     });
