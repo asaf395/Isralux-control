@@ -6,6 +6,7 @@
 <title>ישראלוקס - בקרת מחסן</title>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <style>
 :root{
@@ -18,19 +19,42 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Heebo',sans-serif;background:var(--bg);color:#1e293b;min-height:100vh;direction:rtl}
-.header{background:linear-gradient(135deg,#1e3a8a 0%,#7c3aed 60%,#db2777 100%);padding:0 20px;position:sticky;top:0;z-index:200;box-shadow:0 4px 24px rgba(30,58,138,.35)}
-.header-inner{max-width:740px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:62px}
-.logo{display:flex;align-items:center;gap:10px}
-.logo-icon{width:44px;height:44px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.35);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.logo-text{font-size:21px;font-weight:900;color:#fff;letter-spacing:.5px}
-.header-right{display:flex;align-items:center;gap:8px}
-.day-badge{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px}
-.live-dot{display:none;align-items:center;gap:5px;background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.4);color:#6ee7b7;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px}
+
+/* ── LOGIN SCREEN ── */
+#loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:30px;background:linear-gradient(135deg,#1e3a8a 0%,#7c3aed 60%,#db2777 100%)}
+.login-box{background:#fff;border-radius:24px;padding:40px 32px;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.login-logo{width:72px;height:72px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.login-title{font-size:26px;font-weight:900;color:#1e293b;margin-bottom:6px}
+.login-sub{font-size:14px;color:var(--gray);margin-bottom:32px}
+.google-btn{display:flex;align-items:center;justify-content:center;gap:12px;background:#fff;border:2px solid var(--border);border-radius:14px;padding:14px 20px;font-family:'Heebo',sans-serif;font-size:15px;font-weight:700;color:#1e293b;cursor:pointer;width:100%;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.google-btn:hover{border-color:var(--primary);box-shadow:var(--shadow2);transform:translateY(-1px)}
+.google-btn svg{flex-shrink:0}
+.login-note{font-size:12px;color:var(--light);margin-top:16px}
+
+/* ── HEADER ── */
+.header{background:linear-gradient(135deg,#1e3a8a 0%,#7c3aed 60%,#db2777 100%);padding:0 16px;position:sticky;top:0;z-index:200;box-shadow:0 4px 24px rgba(30,58,138,.35)}
+.header-inner{max-width:740px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:62px;gap:8px}
+.logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.logo-icon{width:40px;height:40px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.35);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.logo-text{font-size:19px;font-weight:900;color:#fff}
+.header-right{display:flex;align-items:center;gap:6px}
+.day-badge{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px}
+.live-dot{display:none;align-items:center;gap:4px;background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.4);color:#6ee7b7;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px}
 .live-dot.on{display:flex}
-.live-dot::before{content:'';width:7px;height:7px;border-radius:50%;background:#10b981;animation:pulse 1.4s ease-in-out infinite}
+.live-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:#10b981;animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.user-pill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:4px 10px 4px 6px;cursor:pointer;transition:background .2s}
+.user-pill:hover{background:rgba(255,255,255,.25)}
+.user-avatar{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.5);object-fit:cover}
+.user-name{font-size:11px;font-weight:700;color:#fff;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-tag{font-size:9px;background:rgba(245,158,11,.3);color:#fde68a;padding:1px 6px;border-radius:8px;font-weight:700}
+
+/* ── VIEWER BANNER ── */
+.viewer-banner{background:linear-gradient(135deg,#eff6ff,#f5f3ff);border:1.5px solid #c7d2fe;border-radius:14px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:#3730a3}
+
+/* ── MAIN ── */
 .main{max-width:740px;margin:0 auto;padding:20px 14px 100px}
-.status-bar{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:14px;font-size:13px;font-weight:600;color:var(--gray);box-shadow:var(--shadow)}
+.status-bar{border:1.5px solid var(--border);border-radius:14px;padding:11px 16px;margin-bottom:14px;font-size:13px;font-weight:600;color:var(--gray);background:#fff;box-shadow:var(--shadow)}
 .status-bar.ok{border-color:#10b981;color:#059669;background:#f0fdf4}
 .status-bar.err{border-color:#ef4444;color:#dc2626;background:#fef2f2}
 .sec-title{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--primary);margin:22px 0 12px;display:flex;align-items:center;gap:8px}
@@ -38,12 +62,7 @@ body{font-family:'Heebo',sans-serif;background:var(--bg);color:#1e293b;min-heigh
 .card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:18px 20px;margin-bottom:12px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:box-shadow .2s,border-color .2s}
 .card:focus-within{border-color:var(--primary2);box-shadow:var(--shadow2)}
 .ca{position:absolute;top:0;right:0;width:4px;height:100%}
-.ab{background:linear-gradient(180deg,#2563eb,#93c5fd)}
-.ap{background:linear-gradient(180deg,#7c3aed,#c4b5fd)}
-.ak{background:linear-gradient(180deg,#db2777,#fbcfe8)}
-.at{background:linear-gradient(180deg,#0d9488,#99f6e4)}
-.ao{background:linear-gradient(180deg,#d97706,#fde68a)}
-.ag{background:linear-gradient(180deg,#059669,#a7f3d0)}
+.ab{background:linear-gradient(180deg,#2563eb,#93c5fd)}.ap{background:linear-gradient(180deg,#7c3aed,#c4b5fd)}.ak{background:linear-gradient(180deg,#db2777,#fbcfe8)}.at{background:linear-gradient(180deg,#0d9488,#99f6e4)}.ao{background:linear-gradient(180deg,#d97706,#fde68a)}.ag{background:linear-gradient(180deg,#059669,#a7f3d0)}
 .field-label{font-size:13px;font-weight:700;color:var(--gray);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 input[type="text"],textarea{width:100%;background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;color:#1e293b;font-family:'Heebo',sans-serif;font-size:15px;font-weight:500;padding:12px 14px;direction:rtl;outline:none;transition:border-color .2s,background .2s,box-shadow .2s}
 input[type="text"]:focus,textarea:focus{border-color:var(--primary2);background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
@@ -82,14 +101,18 @@ textarea{resize:vertical;min-height:80px}
 .bview:hover{transform:translateY(-2px)}
 .bmon{background:linear-gradient(135deg,#d97706,#db2777);color:#fff;font-size:13px;padding:12px 10px}
 .bmon:hover{transform:translateY(-2px)}
+.badmin{background:linear-gradient(135deg,#374151,#111827);color:#fff;font-size:13px;padding:12px 10px}
+.badmin:hover{transform:translateY(-2px)}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(130px);font-family:'Heebo',sans-serif;font-size:14px;font-weight:700;padding:13px 24px;border-radius:30px;z-index:999;transition:transform .3s;pointer-events:none;max-width:92vw;text-align:center}
 .toast.s{background:linear-gradient(135deg,#059669,#0d9488);color:#fff;box-shadow:0 6px 24px rgba(5,150,105,.4)}
-.toast.e{background:linear-gradient(135deg,#dc2626,#db2777);color:#fff;box-shadow:0 6px 24px rgba(220,38,38,.4)}
+.toast.e{background:linear-gradient(135deg,#dc2626,#db2777);color:#fff}
 .toast.i{background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .divider{height:2px;background:linear-gradient(90deg,var(--primary2),var(--purple),transparent);border-radius:2px;margin:24px 0;opacity:.25}
 .rec-btn{background:var(--card);border:1.5px solid var(--border);border-radius:14px;color:var(--gray);font-family:'Heebo',sans-serif;font-size:14px;font-weight:700;padding:12px 20px;cursor:pointer;width:100%;text-align:center;margin-bottom:12px;transition:all .2s;box-shadow:var(--shadow)}
 .rec-btn:hover{border-color:var(--primary2);color:var(--primary)}
+
+/* ── RECORD CARD ── */
 .rcard{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;box-shadow:var(--shadow)}
 .rcard.new{border-color:#10b981;animation:fi .5s ease}
 @keyframes fi{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
@@ -98,6 +121,13 @@ textarea{resize:vertical;min-height:80px}
 .rhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1.5px solid var(--border)}
 .rnum{font-size:14px;font-weight:800;color:var(--primary)}
 .rdate{font-size:11px;color:var(--light)}
+.admin-actions{display:flex;gap:6px;margin-top:12px}
+.btn-edit{flex:1;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;color:#2563eb;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;padding:8px;cursor:pointer;transition:all .15s}
+.btn-edit:hover{background:#2563eb;color:#fff}
+.btn-del{flex:1;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;color:#dc2626;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;padding:8px;cursor:pointer;transition:all .15s}
+.btn-del:hover{background:#dc2626;color:#fff}
+
+/* ── MODALS ── */
 .modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:500;flex-direction:column;backdrop-filter:blur(3px)}
 .modal.open{display:flex}
 .mbox{background:var(--card);border-radius:22px 22px 0 0;flex:1;margin-top:54px;display:flex;flex-direction:column;overflow:hidden}
@@ -109,31 +139,75 @@ textarea{resize:vertical;min-height:80px}
 .bclose:hover{background:#dc2626;color:#fff}
 .mscroll{flex:1;overflow:auto;padding:16px}
 .sbar{display:flex;gap:14px;flex-wrap:wrap;background:linear-gradient(135deg,#eff6ff,#f5f3ff);border:1.5px solid #ddd6fe;border-radius:14px;padding:14px 18px;margin-bottom:16px;align-items:center}
-.si{text-align:center}
-.sn{font-size:26px;font-weight:900;line-height:1}
-.sl{font-size:11px;color:var(--gray);font-weight:600;margin-top:2px}
-.sdiv{width:1px;height:36px;background:var(--border)}
+.si{text-align:center}.sn{font-size:26px;font-weight:900;line-height:1}.sl{font-size:11px;color:var(--gray);font-weight:600;margin-top:2px}.sdiv{width:1px;height:36px;background:var(--border)}
 .tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
 .tbl th{background:linear-gradient(135deg,#1e3a8a,#7c3aed);color:#fff;padding:11px 13px;text-align:right;font-weight:700;font-size:12px;white-space:nowrap}
 .tbl td{padding:10px 13px;border-bottom:1px solid var(--border);color:#1e293b;vertical-align:middle}
 .tbl tr:nth-child(even) td{background:#f8faff}
-.msec{margin-bottom:22px}
-.mlbl{font-size:14px;font-weight:800;color:#1e293b;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+.msec{margin-bottom:22px}.mlbl{font-size:14px;font-weight:800;color:#1e293b;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--border)}
 .ecard{background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
 .ename{font-size:15px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:8px}
 .etag{background:#fee2e2;color:#dc2626;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
 .erow{display:flex;justify-content:space-between;font-size:12px;color:var(--gray);padding:4px 0;border-bottom:1px solid var(--border)}
 .erow:last-child{border:none}
-@media print{.mhead,.macts,.btn-row,.rec-btn,.divider,.sec-title,.status-bar{display:none!important}.modal{position:static!important;display:block!important;background:#fff!important}.mbox{margin:0}body{background:#fff}}
+
+/* EDIT MODAL */
+.edit-modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.7);z-index:600;align-items:center;justify-content:center;padding:20px}
+.edit-modal.open{display:flex}
+.edit-box{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.edit-box h3{font-size:16px;font-weight:800;color:#1e293b;margin-bottom:16px}
+.edit-field{margin-bottom:12px}
+.edit-field label{font-size:12px;font-weight:700;color:var(--gray);display:block;margin-bottom:5px}
+.edit-btns{display:flex;gap:10px;margin-top:16px}
+.btn-save-edit{flex:1;background:linear-gradient(135deg,#2563eb,#7c3aed);border:none;border-radius:12px;color:#fff;font-family:'Heebo',sans-serif;font-size:14px;font-weight:700;padding:12px;cursor:pointer}
+.btn-cancel-edit{flex:1;background:#f1f5f9;border:none;border-radius:12px;color:var(--gray);font-family:'Heebo',sans-serif;font-size:14px;font-weight:700;padding:12px;cursor:pointer}
+
+/* ADMIN PANEL */
+.admin-card{background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.admin-info{display:flex;flex-direction:column;gap:2px}
+.admin-email{font-size:14px;font-weight:700;color:#1e293b}
+.admin-uid{font-size:10px;color:var(--light)}
+.btn-remove-admin{background:#fee2e2;border:1px solid #fecaca;border-radius:8px;color:#dc2626;font-family:'Heebo',sans-serif;font-size:12px;font-weight:700;padding:6px 12px;cursor:pointer}
+.btn-remove-admin:hover{background:#dc2626;color:#fff}
+.add-admin-box{background:linear-gradient(135deg,#eff6ff,#f5f3ff);border:1.5px solid #c7d2fe;border-radius:14px;padding:16px;margin-bottom:16px}
+.add-admin-box p{font-size:13px;font-weight:600;color:#3730a3;margin-bottom:10px}
+.uid-input{display:flex;gap:8px}
+.uid-input input{flex:1;font-size:13px}
+
+@media print{.mhead,.macts,.btn-row,.rec-btn,.divider,.sec-title,.status-bar,.admin-actions,.viewer-banner{display:none!important}.modal{position:static!important;display:block!important;background:#fff!important}.mbox{margin:0}body{background:#fff}}
 </style>
 </head>
 <body>
+
+<!-- ── LOGIN SCREEN ── -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+        <path d="M1 22V11L12 3L23 11V22H15V16H9V22H1Z" fill="rgba(255,255,255,0.95)"/>
+        <rect x="9" y="16" width="6" height="6" fill="rgba(255,255,255,0.4)" stroke="rgba(255,255,255,0.7)" stroke-width="0.8"/>
+        <rect x="4" y="13" width="4" height="3" rx="0.5" fill="rgba(30,58,138,0.4)"/>
+        <rect x="16" y="13" width="4" height="3" rx="0.5" fill="rgba(30,58,138,0.4)"/>
+      </svg>
+    </div>
+    <div class="login-title">ישראלוקס</div>
+    <div class="login-sub">מערכת בקרת מחסן — כניסה נדרשת</div>
+    <button class="google-btn" onclick="signInGoogle()">
+      <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      כניסה עם Google
+    </button>
+    <div class="login-note">כל משתמש עם חשבון Google יכול להיכנס לצפייה<br>מנהלים בלבד יכולים לדווח ולערוך</div>
+  </div>
+</div>
+
+<!-- ── APP (נסתר עד כניסה) ── -->
+<div id="appScreen" style="display:none">
 
 <header class="header">
   <div class="header-inner">
     <div class="logo">
       <div class="logo-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
           <path d="M1 22V11L12 3L23 11V22H15V16H9V22H1Z" fill="rgba(255,255,255,0.9)"/>
           <rect x="9" y="16" width="6" height="6" fill="rgba(255,255,255,0.3)" stroke="rgba(255,255,255,0.6)" stroke-width="0.8"/>
           <rect x="4" y="13" width="4" height="3" rx="0.5" fill="rgba(30,58,138,0.5)"/>
@@ -145,103 +219,104 @@ textarea{resize:vertical;min-height:80px}
     <div class="header-right">
       <div class="day-badge" id="dayBadge">🏭 בקרת מחסן</div>
       <div class="live-dot" id="liveDot">LIVE</div>
+      <div class="user-pill" onclick="signOut()">
+        <img class="user-avatar" id="userAvatar" src="" alt=""/>
+        <div>
+          <div class="user-name" id="userName">משתמש</div>
+          <div class="admin-tag" id="roleTag" style="display:none">מנהל</div>
+        </div>
+      </div>
     </div>
   </div>
 </header>
 
 <main class="main">
   <div class="status-bar" id="statusBar">⏳ מתחבר...</div>
-  <div class="sec-title">📋 טופס דיווח ממצא</div>
 
-  <div class="card"><div class="ca ab"></div>
-    <div class="field-label">📄 מספר הזמנה</div>
-    <div class="dialer"><input type="text" id="orderNum" inputmode="numeric" placeholder="0000-000000" oninput="numOnly(this)"/></div>
+  <!-- צופה בלבד -->
+  <div class="viewer-banner" id="viewerBanner" style="display:none">
+    👁️ מצב צפייה בלבד — פנה למנהל לקבלת הרשאות עריכה
   </div>
 
-  <div class="card"><div class="ca ap"></div>
-    <div class="field-label">🔖 מספר מק"ט</div>
-    <div class="dialer"><input type="text" id="sku" inputmode="numeric" placeholder="0000-000" oninput="numOnly(this)"/></div>
-  </div>
+  <!-- טופס (מנהלים בלבד) -->
+  <div id="adminForm">
+    <div class="sec-title">📋 טופס דיווח ממצא</div>
 
-  <div class="card"><div class="ca ak"></div>
-    <div class="field-label">🏢 שם לקוח</div>
-    <input type="text" id="customer" placeholder="הקלד שם לקוח..."/>
-  </div>
-
-  <div class="card"><div class="ca at"></div>
-    <div class="field-label">📍 אזור</div>
-    <div class="zone-wrap" id="zoneWrap">
-      <div class="zchip zy" data-val="ירושלים">🟡 ירושלים</div>
-      <div class="zchip zr" data-val="דרום">🔴 דרום</div>
-      <div class="zchip zg" data-val="צפון">🟢 צפון</div>
-      <div class="zchip zm" data-val="מרכז">🟣 מרכז</div>
-      <div class="zchip zb" data-val="שרון">🔵 שרון</div>
+    <div class="card"><div class="ca ab"></div>
+      <div class="field-label">📄 מספר הזמנה</div>
+      <div class="dialer"><input type="text" id="orderNum" inputmode="numeric" placeholder="0000-000000" oninput="numOnly(this)"/></div>
     </div>
-    <div class="add-row">
-      <input type="text" id="newZone" placeholder="הוסף אזור..."/>
-      <button class="btn-add" onclick="addZone()">+ הוסף</button>
+    <div class="card"><div class="ca ap"></div>
+      <div class="field-label">🔖 מספר מק"ט</div>
+      <div class="dialer"><input type="text" id="sku" inputmode="numeric" placeholder="0000-000" oninput="numOnly(this)"/></div>
     </div>
-  </div>
-
-  <div class="card"><div class="ca ap"></div>
-    <div class="field-label">👷 שם עובד</div>
-    <div class="chip-wrap" id="empWrap"></div>
-    <div class="add-row">
-      <input type="text" id="newEmp" placeholder="הוסף שם עובד..."/>
-      <button class="btn-add" onclick="addEmp()">+ הוסף</button>
+    <div class="card"><div class="ca ak"></div>
+      <div class="field-label">🏢 שם לקוח</div>
+      <input type="text" id="customer" placeholder="הקלד שם לקוח..."/>
     </div>
-  </div>
-
-  <div class="card"><div class="ca ak"></div>
-    <div class="field-label">⚠️ מה הבעיה <small style="color:var(--light);font-weight:500">(עד 2 בחירות)</small></div>
-    <div class="prob-grid" id="probWrap">
-      <div class="pchip" data-val="קרטון קרוע"><span class="pe">📦</span>קרטון קרוע</div>
-      <div class="pchip" data-val="משטח שבור"><span class="pe">🔨</span>משטח שבור</div>
-      <div class="pchip" data-val="כמות בעודף"><span class="pe">➕</span>כמות בעודף</div>
-      <div class="pchip" data-val="כמות בחוסר"><span class="pe">➖</span>כמות בחוסר</div>
+    <div class="card"><div class="ca at"></div>
+      <div class="field-label">📍 אזור</div>
+      <div class="zone-wrap" id="zoneWrap">
+        <div class="zchip zy" data-val="ירושלים">🟡 ירושלים</div>
+        <div class="zchip zr" data-val="דרום">🔴 דרום</div>
+        <div class="zchip zg" data-val="צפון">🟢 צפון</div>
+        <div class="zchip zm" data-val="מרכז">🟣 מרכז</div>
+        <div class="zchip zb" data-val="שרון">🔵 שרון</div>
+      </div>
+      <div class="add-row"><input type="text" id="newZone" placeholder="הוסף אזור..."/><button class="btn-add" onclick="addZone()">+ הוסף</button></div>
     </div>
-  </div>
-
-  <div class="card"><div class="ca ag"></div>
-    <div class="field-label">🔧 איך טופל</div>
-    <textarea id="handling" placeholder="תאר כיצד הטיפול בוצע..."></textarea>
-  </div>
-
-  <div class="card"><div class="ca ao"></div>
-    <div class="field-label">🕵️ שם בקר</div>
-    <div class="chip-wrap" id="inspWrap"></div>
-    <div class="add-row">
-      <input type="text" id="newInsp" placeholder="הוסף שם בקר..."/>
-      <button class="btn-add" onclick="addInsp()">+ הוסף</button>
+    <div class="card"><div class="ca ap"></div>
+      <div class="field-label">👷 שם עובד</div>
+      <div class="chip-wrap" id="empWrap"></div>
+      <div class="add-row"><input type="text" id="newEmp" placeholder="הוסף שם עובד..."/><button class="btn-add" onclick="addEmp()">+ הוסף</button></div>
+    </div>
+    <div class="card"><div class="ca ak"></div>
+      <div class="field-label">⚠️ מה הבעיה <small style="color:var(--light);font-weight:500">(עד 2)</small></div>
+      <div class="prob-grid" id="probWrap">
+        <div class="pchip" data-val="קרטון קרוע"><span class="pe">📦</span>קרטון קרוע</div>
+        <div class="pchip" data-val="משטח שבור"><span class="pe">🔨</span>משטח שבור</div>
+        <div class="pchip" data-val="כמות בעודף"><span class="pe">➕</span>כמות בעודף</div>
+        <div class="pchip" data-val="כמות בחוסר"><span class="pe">➖</span>כמות בחוסר</div>
+      </div>
+    </div>
+    <div class="card"><div class="ca ag"></div>
+      <div class="field-label">🔧 איך טופל</div>
+      <textarea id="handling" placeholder="תאר כיצד הטיפול בוצע..."></textarea>
+    </div>
+    <div class="card"><div class="ca ao"></div>
+      <div class="field-label">🕵️ שם בקר</div>
+      <div class="chip-wrap" id="inspWrap"></div>
+      <div class="add-row"><input type="text" id="newInsp" placeholder="הוסף שם בקר..."/><button class="btn-add" onclick="addInsp()">+ הוסף</button></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-main bsave" id="saveBtn" onclick="submitForm()">✅ שמור דיווח</button>
+      <button class="btn-main bview" onclick="openTable()">📊 צפה בדיווחים</button>
     </div>
   </div>
 
-  <div class="btn-row">
-    <button class="btn-main bsave" id="saveBtn" onclick="submitForm()">✅ שמור דיווח</button>
-    <button class="btn-main bview" onclick="openTable()">📊 צפה בדיווחים</button>
+  <!-- כפתורי צופה -->
+  <div id="viewerButtons" style="display:none">
+    <div class="sec-title">📋 דיווחי המחסן</div>
+    <div class="btn-row">
+      <button class="btn-main bview" onclick="openTable()">📊 צפה בדיווחים</button>
+    </div>
   </div>
 
   <div class="divider"></div>
-
-  <button class="rec-btn" id="recBtn" onclick="toggleRec()">
-    📂 דיווחים של היום (<span id="recCount">0</span>)
-  </button>
+  <button class="rec-btn" id="recBtn" onclick="toggleRec()">📂 דיווחים של היום (<span id="recCount">0</span>)</button>
   <div id="recList" style="display:none"></div>
 
-  <div style="margin-top:14px">
-    <button class="btn-main bmon" onclick="openMonthly()" style="width:100%">📈 דוח חודשי — שגיאות עובדים</button>
+  <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn-main bmon" onclick="openMonthly()" style="flex:1">📈 דוח חודשי</button>
+    <button class="btn-main badmin" onclick="openAdminPanel()" id="adminPanelBtn" style="flex:1;display:none">👥 ניהול מנהלים</button>
   </div>
 </main>
 
 <!-- TABLE MODAL -->
 <div class="modal" id="tableModal">
   <div class="mbox">
-    <div class="mhead">
-      <h2>📊 דוח בקרה — ישראלוקס</h2>
-      <div class="macts">
-        <button class="bprint" onclick="window.print()">🖨️ הדפס</button>
-        <button class="bclose" onclick="closeModal('tableModal')">✕</button>
-      </div>
+    <div class="mhead"><h2>📊 דוח בקרה — ישראלוקס</h2>
+      <div class="macts"><button class="bprint" onclick="window.print()">🖨️ הדפס</button><button class="bclose" onclick="closeModal('tableModal')">✕</button></div>
     </div>
     <div class="mscroll"><div id="tableContent"></div></div>
   </div>
@@ -250,33 +325,74 @@ textarea{resize:vertical;min-height:80px}
 <!-- MONTHLY MODAL -->
 <div class="modal" id="monthlyModal">
   <div class="mbox">
-    <div class="mhead">
-      <h2>📈 דוח חודשי — שגיאות עובדים</h2>
-      <div class="macts">
-        <button class="bprint" onclick="window.print()">🖨️ הדפס</button>
-        <button class="bclose" onclick="closeModal('monthlyModal')">✕</button>
-      </div>
+    <div class="mhead"><h2>📈 דוח חודשי</h2>
+      <div class="macts"><button class="bprint" onclick="window.print()">🖨️ הדפס</button><button class="bclose" onclick="closeModal('monthlyModal')">✕</button></div>
     </div>
     <div class="mscroll"><div id="monthlyContent"></div></div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL MODAL -->
+<div class="modal" id="adminModal">
+  <div class="mbox">
+    <div class="mhead"><h2>👥 ניהול מנהלים</h2>
+      <div class="macts"><button class="bclose" onclick="closeModal('adminModal')">✕</button></div>
+    </div>
+    <div class="mscroll">
+      <div class="add-admin-box">
+        <p>➕ הוסף מנהל חדש לפי UID<br><small style="font-weight:500;color:#6366f1">ה-UID נמצא ב-Firebase Console → Authentication → Users</small></p>
+        <div class="uid-input">
+          <input type="text" id="newAdminUid" placeholder="הכנס UID..." style="font-size:13px;direction:ltr"/>
+          <input type="text" id="newAdminEmail" placeholder="אימייל (לתצוגה)" style="font-size:13px"/>
+          <button class="btn-add" onclick="addAdmin()">הוסף</button>
+        </div>
+      </div>
+      <div id="adminList"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end appScreen -->
+
+<!-- EDIT MODAL -->
+<div class="edit-modal" id="editModal">
+  <div class="edit-box">
+    <h3>✏️ עריכת דיווח</h3>
+    <input type="hidden" id="editDocId"/>
+    <div class="edit-field"><label>מספר הזמנה</label><input type="text" id="eOrderNum" inputmode="numeric" oninput="numOnly(this)"/></div>
+    <div class="edit-field"><label>מספר מק"ט</label><input type="text" id="eSku" inputmode="numeric" oninput="numOnly(this)"/></div>
+    <div class="edit-field"><label>שם לקוח</label><input type="text" id="eCustomer"/></div>
+    <div class="edit-field"><label>אזור</label><input type="text" id="eZone"/></div>
+    <div class="edit-field"><label>עובד</label><input type="text" id="eEmployee"/></div>
+    <div class="edit-field"><label>בעיה</label><input type="text" id="eProblems"/></div>
+    <div class="edit-field"><label>איך טופל</label><textarea id="eHandling" style="min-height:60px"></textarea></div>
+    <div class="edit-field"><label>בקר</label><input type="text" id="eInspector"/></div>
+    <div class="edit-btns">
+      <button class="btn-save-edit" onclick="saveEdit()">💾 שמור</button>
+      <button class="btn-cancel-edit" onclick="closeEdit()">ביטול</button>
+    </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ── FIREBASE ────────────────────────────────────────────
+// ── FIREBASE INIT ────────────────────────────────────────
 firebase.initializeApp({
-  apiKey: "AIzaSyCfEDlWOnuFy9T55i10zfIIM7jxVk1htXo",
-  authDomain: "isralux-control-3a164.firebaseapp.com",
-  projectId: "isralux-control-3a164",
-  storageBucket: "isralux-control-3a164.firebasestorage.app",
-  messagingSenderId: "78153562359",
-  appId: "1:78153562359:web:a4cf511d772cb51a93fbf2"
+  apiKey:"AIzaSyCfEDlWOnuFy9T55i10zfIIM7jxVk1htXo",
+  authDomain:"isralux-control-3a164.firebaseapp.com",
+  projectId:"isralux-control-3a164",
+  storageBucket:"isralux-control-3a164.firebasestorage.app",
+  messagingSenderId:"78153562359",
+  appId:"1:78153562359:web:a4cf511d772cb51a93fbf2"
 });
-var db = firebase.firestore();
+var auth=firebase.auth(), db=firebase.firestore();
+var provider=new firebase.auth.GoogleAuthProvider();
 
-// ── PALETTES ────────────────────────────────────────────
-var EP = [
+// ── STATE ────────────────────────────────────────────────
+var currentUser=null, isAdmin=false, records=[], archive=[], docIdMap={};
+var TODAY=new Date().toLocaleDateString('he-IL');
+var EP=[
   {bg:'#dbeafe',bd:'#3b82f6',tx:'#1d4ed8',s:'#2563eb',st:'#fff'},
   {bg:'#f3e8ff',bd:'#a855f7',tx:'#7e22ce',s:'#9333ea',st:'#fff'},
   {bg:'#dcfce7',bd:'#22c55e',tx:'#166534',s:'#16a34a',st:'#fff'},
@@ -285,114 +401,199 @@ var EP = [
   {bg:'#fce7f3',bd:'#f472b6',tx:'#9d174d',s:'#db2777',st:'#fff'},
   {bg:'#e0f2fe',bd:'#38bdf8',tx:'#075985',s:'#0284c7',st:'#fff'},
 ];
-var IP = [
+var IP=[
   {bg:'#fef9c3',bd:'#eab308',tx:'#854d0e',s:'#d97706',st:'#fff'},
   {bg:'#dbeafe',bd:'#3b82f6',tx:'#1d4ed8',s:'#2563eb',st:'#fff'},
   {bg:'#f3e8ff',bd:'#a855f7',tx:'#7e22ce',s:'#9333ea',st:'#fff'},
 ];
-var ZC = {ירושלים:'#854d0e',דרום:'#991b1b',צפון:'#166534',מרכז:'#7e22ce',שרון:'#1d4ed8'};
-var eMap={}, iMap={}, ei=0, ii=0;
-var records=[], archive=[];
-var TODAY = new Date().toLocaleDateString('he-IL');
+var ZC={ירושלים:'#854d0e',דרום:'#991b1b',צפון:'#166534',מרכז:'#7e22ce',שרון:'#1d4ed8'};
+var eMap={},iMap={},ei=0,ii=0;
 
-// ── INIT ────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-  updateBadge();
-  ['גיא','יהונתן','אסא','אולג','בוריס','עוזי','דבורה'].forEach(buildE);
-  ['אסף','גיא','יהונתן'].forEach(buildI);
-  document.querySelectorAll('.zchip').forEach(function(c){ c.addEventListener('click',function(){selZone(c);}); });
-  document.querySelectorAll('.pchip').forEach(function(c){ c.addEventListener('click',function(){togProb(c);}); });
-  [['newZone',addZone],['newEmp',addEmp],['newInsp',addInsp]].forEach(function(p){
-    document.getElementById(p[0]).addEventListener('keydown',function(e){if(e.key==='Enter')p[1]();});
-  });
-  document.addEventListener('click',function(e){
-    ['tableModal','monthlyModal'].forEach(function(id){if(e.target===document.getElementById(id))closeModal(id);});
-  });
-  listenFirebase();
-  scheduleReset();
+// ── AUTH ─────────────────────────────────────────────────
+auth.onAuthStateChanged(function(user){
+  if(user){
+    currentUser=user;
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appScreen').style.display='block';
+    document.getElementById('userAvatar').src=user.photoURL||'';
+    document.getElementById('userName').textContent=user.displayName||user.email;
+    updateBadge();
+    initChips();
+    checkAdmin(user.uid);
+  } else {
+    document.getElementById('loginScreen').style.display='flex';
+    document.getElementById('appScreen').style.display='none';
+    currentUser=null; isAdmin=false;
+  }
 });
 
-function updateBadge(){
-  var d=new Date(), days=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
-  document.getElementById('dayBadge').textContent='📅 יום '+days[d.getDay()]+' | '+d.toLocaleDateString('he-IL');
+function signInGoogle(){
+  auth.signInWithPopup(provider).catch(function(e){toast('שגיאת כניסה: '+e.message,'e');});
+}
+function signOut(){
+  if(confirm('להתנתק?')) auth.signOut();
 }
 
-// ── FIREBASE LISTENERS ─────────────────────────────────
-// שתי שאילתות פשוטות — בלי orderBy, בלי index
-function listenFirebase(){
-  var sb = document.getElementById('statusBar');
-  var ld = document.getElementById('liveDot');
+function checkAdmin(uid){
+  db.collection('admins').doc(uid).get().then(function(doc){
+    isAdmin=doc.exists;
+    document.getElementById('roleTag').style.display=isAdmin?'block':'none';
+    document.getElementById('adminForm').style.display=isAdmin?'block':'none';
+    document.getElementById('viewerButtons').style.display=isAdmin?'none':'block';
+    document.getElementById('viewerBanner').style.display=isAdmin?'none':'flex';
+    document.getElementById('adminPanelBtn').style.display=isAdmin?'flex':'none';
+    listenFirebase();
+  }).catch(function(){
+    // אין הרשאת admin — צופה
+    isAdmin=false;
+    document.getElementById('adminForm').style.display='none';
+    document.getElementById('viewerButtons').style.display='block';
+    document.getElementById('viewerBanner').style.display='flex';
+    document.getElementById('adminPanelBtn').style.display='none';
+    listenFirebase();
+  });
+}
 
-  // דיווחי היום — שאילתה פשוטה על שדה אחד בלבד
-  db.collection('records')
-    .where('dateKey','==', TODAY)
+// ── FIREBASE LISTENERS ───────────────────────────────────
+function listenFirebase(){
+  var sb=document.getElementById('statusBar');
+  var ld=document.getElementById('liveDot');
+  db.collection('records').where('dateKey','==',TODAY)
     .onSnapshot(function(snap){
-      records = [];
-      snap.forEach(function(d){ records.push(d.data()); });
+      records=[];docIdMap={};
+      snap.forEach(function(d){
+        var data=d.data(); data._docId=d.id;
+        records.push(data); docIdMap[data.id]=d.id;
+      });
       records.sort(function(a,b){return b.id-a.id;});
       sb.className='status-bar ok';
       sb.textContent='🟢 מחובר — '+records.length+' דיווחים היום';
       ld.className='live-dot on';
       updateCount();
-      if(recOpen) renderRec();
-    }, function(err){
+      if(recOpen)renderRec();
+    },function(err){
       sb.className='status-bar err';
       sb.textContent='🔴 '+err.message;
-      ld.className='live-dot';
     });
-
-  // ארכיון — שאילתה פשוטה על שדה אחד בלבד
-  db.collection('archive')
-    .where('dateKey','!=', TODAY)
-    .onSnapshot(function(snap){
-      archive=[];
-      snap.forEach(function(d){ archive.push(d.data()); });
-    }, function(){});
+  db.collection('archive').where('dateKey','!=',TODAY)
+    .onSnapshot(function(snap){archive=[];snap.forEach(function(d){archive.push(d.data());});},function(){});
 }
 
-// ── SUBMIT ──────────────────────────────────────────────
+// ── SUBMIT ───────────────────────────────────────────────
 function submitForm(){
-  var v = {
-    orderNum: document.getElementById('orderNum').value.trim(),
-    sku:      document.getElementById('sku').value.trim(),
-    customer: document.getElementById('customer').value.trim(),
-    zone:     getZone(),
-    employee: getChip('empWrap'),
-    problems: getProbs(),
-    handling: document.getElementById('handling').value.trim(),
+  if(!isAdmin){toast('אין הרשאת עריכה','e');return;}
+  var v={
+    orderNum:document.getElementById('orderNum').value.trim(),
+    sku:document.getElementById('sku').value.trim(),
+    customer:document.getElementById('customer').value.trim(),
+    zone:getZone(),employee:getChip('empWrap'),problems:getProbs(),
+    handling:document.getElementById('handling').value.trim(),
     inspector:getChip('inspWrap'),
   };
   var miss=[];
-  if(!v.orderNum) miss.push('מספר הזמנה');
-  if(!v.customer) miss.push('שם לקוח');
-  if(!v.employee) miss.push('שם עובד');
-  if(!v.problems) miss.push('בחירת בעיה');
-  if(!v.handling) miss.push('איך טופל');
+  if(!v.orderNum)miss.push('מספר הזמנה');
+  if(!v.customer)miss.push('שם לקוח');
+  if(!v.employee)miss.push('שם עובד');
+  if(!v.problems)miss.push('בחירת בעיה');
+  if(!v.handling)miss.push('איך טופל');
   if(!v.inspector)miss.push('שם בקר');
   if(miss.length){toast('⚠️ חסר: '+miss.join(' | '),'e');return;}
-
   var now=new Date();
-  v.id=now.getTime();
-  v.dateKey=now.toLocaleDateString('he-IL');
+  v.id=now.getTime(); v.dateKey=now.toLocaleDateString('he-IL');
   v.date=v.dateKey+' '+now.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
   v.monthKey=(now.getMonth()+1)+'/'+now.getFullYear();
-
+  v.createdBy=currentUser.email;
   var btn=document.getElementById('saveBtn');
-  btn.disabled=true; btn.textContent='⏳ שומר...';
-
+  btn.disabled=true;btn.textContent='⏳ שומר...';
   db.collection('records').add(v)
-    .then(function(){toast('✅ נשמר ומוצג לכולם!','s');resetForm();})
+    .then(function(){toast('✅ נשמר!','s');resetForm();})
     .catch(function(e){toast('❌ '+e.message,'e');})
     .finally(function(){btn.disabled=false;btn.textContent='✅ שמור דיווח';});
 }
 
-// ── MIDNIGHT RESET ──────────────────────────────────────
+// ── DELETE ───────────────────────────────────────────────
+function deleteRecord(docId,orderNum){
+  if(!isAdmin){toast('אין הרשאה','e');return;}
+  if(!confirm('למחוק דיווח '+orderNum+'?'))return;
+  db.collection('records').doc(docId).delete()
+    .then(function(){toast('🗑️ נמחק','s');})
+    .catch(function(e){toast('❌ '+e.message,'e');});
+}
+
+// ── EDIT ─────────────────────────────────────────────────
+function openEdit(r){
+  if(!isAdmin){return;}
+  document.getElementById('editDocId').value=r._docId;
+  document.getElementById('eOrderNum').value=r.orderNum;
+  document.getElementById('eSku').value=r.sku||'';
+  document.getElementById('eCustomer').value=r.customer;
+  document.getElementById('eZone').value=r.zone||'';
+  document.getElementById('eEmployee').value=r.employee;
+  document.getElementById('eProblems').value=r.problems;
+  document.getElementById('eHandling').value=r.handling;
+  document.getElementById('eInspector').value=r.inspector;
+  document.getElementById('editModal').classList.add('open');
+}
+function closeEdit(){document.getElementById('editModal').classList.remove('open');}
+function saveEdit(){
+  var docId=document.getElementById('editDocId').value;
+  var updates={
+    orderNum:document.getElementById('eOrderNum').value.trim(),
+    sku:document.getElementById('eSku').value.trim(),
+    customer:document.getElementById('eCustomer').value.trim(),
+    zone:document.getElementById('eZone').value.trim(),
+    employee:document.getElementById('eEmployee').value.trim(),
+    problems:document.getElementById('eProblems').value.trim(),
+    handling:document.getElementById('eHandling').value.trim(),
+    inspector:document.getElementById('eInspector').value.trim(),
+    editedBy:currentUser.email,
+    editedAt:new Date().toLocaleString('he-IL'),
+  };
+  db.collection('records').doc(docId).update(updates)
+    .then(function(){toast('✅ עודכן!','s');closeEdit();})
+    .catch(function(e){toast('❌ '+e.message,'e');});
+}
+
+// ── ADMIN PANEL ──────────────────────────────────────────
+function openAdminPanel(){
+  db.collection('admins').get().then(function(snap){
+    var html='';
+    snap.forEach(function(d){
+      var data=d.data();
+      html+='<div class="admin-card">'+
+        '<div class="admin-info">'+
+        '<div class="admin-email">'+(data.email||'ללא אימייל')+'</div>'+
+        '<div class="admin-uid">UID: '+d.id+'</div></div>'+
+        '<button class="btn-remove-admin" onclick="removeAdmin(\''+d.id+'\')">הסר</button>'+
+      '</div>';
+    });
+    document.getElementById('adminList').innerHTML=html||'<div style="color:var(--light);text-align:center;padding:20px">אין מנהלים</div>';
+  });
+  openModal('adminModal');
+}
+function addAdmin(){
+  var uid=document.getElementById('newAdminUid').value.trim();
+  var email=document.getElementById('newAdminEmail').value.trim();
+  if(!uid){toast('הכנס UID','e');return;}
+  db.collection('admins').doc(uid).set({email:email,addedBy:currentUser.email,addedAt:new Date().toLocaleString('he-IL')})
+    .then(function(){toast('✅ מנהל נוסף!','s');document.getElementById('newAdminUid').value='';document.getElementById('newAdminEmail').value='';openAdminPanel();})
+    .catch(function(e){toast('❌ '+e.message,'e');});
+}
+function removeAdmin(uid){
+  if(uid===currentUser.uid){toast('לא ניתן להסיר את עצמך','e');return;}
+  if(!confirm('להסיר מנהל זה?'))return;
+  db.collection('admins').doc(uid).delete()
+    .then(function(){toast('✅ הוסר','s');openAdminPanel();})
+    .catch(function(e){toast('❌ '+e.message,'e');});
+}
+
+// ── MIDNIGHT RESET ───────────────────────────────────────
 function scheduleReset(){
-  var now=new Date(), mn=new Date(now); mn.setHours(24,0,5,0);
+  var now=new Date(),mn=new Date(now);mn.setHours(24,0,5,0);
   setTimeout(function(){doReset();setInterval(doReset,86400000);},mn-now);
 }
 function doReset(){
-  var yest=new Date(); yest.setDate(yest.getDate()-1);
+  var yest=new Date();yest.setDate(yest.getDate()-1);
   var yk=yest.toLocaleDateString('he-IL');
   db.collection('records').where('dateKey','==',yk).get().then(function(snap){
     if(snap.empty)return;
@@ -402,80 +603,70 @@ function doReset(){
   }).then(function(){TODAY=new Date().toLocaleDateString('he-IL');updateBadge();toast('🌅 יום חדש!','i');}).catch(function(){});
 }
 
-// ── CHIP BUILDERS ───────────────────────────────────────
+// ── CHIPS ────────────────────────────────────────────────
+function initChips(){
+  document.getElementById('empWrap').innerHTML='';
+  document.getElementById('inspWrap').innerHTML='';
+  ei=0;ii=0;eMap={};iMap={};
+  ['גיא','יהונתן','אסא','אולג','בוריס','עוזי','דבורה'].forEach(buildE);
+  ['אסף','גיא','יהונתן'].forEach(buildI);
+  document.querySelectorAll('.zchip').forEach(function(c){c.addEventListener('click',function(){selZone(c);});});
+  document.querySelectorAll('.pchip').forEach(function(c){c.addEventListener('click',function(){togProb(c);});});
+  [['newZone',addZone],['newEmp',addEmp],['newInsp',addInsp]].forEach(function(p){
+    var el=document.getElementById(p[0]);
+    if(el)el.addEventListener('keydown',function(e){if(e.key==='Enter')p[1]();});
+  });
+  document.addEventListener('click',function(e){
+    ['tableModal','monthlyModal','adminModal'].forEach(function(id){if(e.target===document.getElementById(id))closeModal(id);});
+  });
+  scheduleReset();
+}
 function cs(el,p,on){
   el.style.cssText=on
     ?'background:'+p.s+';border-color:'+p.s+';color:'+p.st+';opacity:1;transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.18)'
     :'background:'+p.bg+';border-color:'+p.bd+';color:'+p.tx+';opacity:.5;transform:none;box-shadow:none';
 }
+function mk(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt)e.textContent=txt;return e;}
 function buildE(name){
   var p=EP[ei%EP.length];ei++;eMap[name]=p;
-  var el=mk('div','nchip',name); el.dataset.name=name; cs(el,p,false);
+  var el=mk('div','nchip',name);el.dataset.name=name;cs(el,p,false);
   el.addEventListener('click',function(){selE(el);});
   el.addEventListener('mouseenter',function(){if(!el.classList.contains('on')){el.style.opacity='.78';el.style.transform='translateY(-1px)';}});
   el.addEventListener('mouseleave',function(){if(!el.classList.contains('on')){el.style.opacity='.5';el.style.transform='none';}});
   document.getElementById('empWrap').appendChild(el);
 }
-function selE(el){
-  document.querySelectorAll('#empWrap .nchip').forEach(function(c){c.classList.remove('on');cs(c,eMap[c.dataset.name]||EP[0],false);});
-  el.classList.add('on');cs(el,eMap[el.dataset.name]||EP[0],true);
-}
-function addEmp(){
-  var inp=document.getElementById('newEmp'),n=inp.value.trim();if(!n)return;
-  buildE(n);inp.value='';
-  var cc=document.querySelectorAll('#empWrap .nchip');selE(cc[cc.length-1]);
-}
+function selE(el){document.querySelectorAll('#empWrap .nchip').forEach(function(c){c.classList.remove('on');cs(c,eMap[c.dataset.name]||EP[0],false);});el.classList.add('on');cs(el,eMap[el.dataset.name]||EP[0],true);}
+function addEmp(){var inp=document.getElementById('newEmp'),n=inp.value.trim();if(!n)return;buildE(n);inp.value='';var cc=document.querySelectorAll('#empWrap .nchip');selE(cc[cc.length-1]);}
 function buildI(name){
   var p=IP[ii%IP.length];ii++;iMap[name]=p;
-  var el=mk('div','nchip',name); el.dataset.name=name; cs(el,p,false);
+  var el=mk('div','nchip',name);el.dataset.name=name;cs(el,p,false);
   el.addEventListener('click',function(){selI(el);});
   el.addEventListener('mouseenter',function(){if(!el.classList.contains('on')){el.style.opacity='.78';el.style.transform='translateY(-1px)';}});
   el.addEventListener('mouseleave',function(){if(!el.classList.contains('on')){el.style.opacity='.5';el.style.transform='none';}});
   document.getElementById('inspWrap').appendChild(el);
 }
-function selI(el){
-  document.querySelectorAll('#inspWrap .nchip').forEach(function(c){c.classList.remove('on');cs(c,iMap[c.dataset.name]||IP[0],false);});
-  el.classList.add('on');cs(el,iMap[el.dataset.name]||IP[0],true);
-}
-function addInsp(){
-  var inp=document.getElementById('newInsp'),n=inp.value.trim();if(!n)return;
-  buildI(n);inp.value='';
-  var cc=document.querySelectorAll('#inspWrap .nchip');selI(cc[cc.length-1]);
-}
+function selI(el){document.querySelectorAll('#inspWrap .nchip').forEach(function(c){c.classList.remove('on');cs(c,iMap[c.dataset.name]||IP[0],false);});el.classList.add('on');cs(el,iMap[el.dataset.name]||IP[0],true);}
+function addInsp(){var inp=document.getElementById('newInsp'),n=inp.value.trim();if(!n)return;buildI(n);inp.value='';var cc=document.querySelectorAll('#inspWrap .nchip');selI(cc[cc.length-1]);}
 function getChip(id){var e=document.querySelector('#'+id+' .nchip.on');return e?e.dataset.name:'';}
-
 function selZone(el){document.querySelectorAll('.zchip').forEach(function(c){c.classList.remove('on');});el.classList.add('on');}
-function addZone(){
-  var inp=document.getElementById('newZone'),v=inp.value.trim();if(!v)return;
-  var el=mk('div','zchip zx');el.dataset.val=v;el.textContent='📍 '+v;
-  el.addEventListener('click',function(){selZone(el);});
-  document.getElementById('zoneWrap').appendChild(el);inp.value='';selZone(el);
-}
-function getZone(){var e=document.querySelector('.zchip.on');return e?(e.dataset.val||e.textContent.trim().replace(/^.\s/,'')):''}
+function addZone(){var inp=document.getElementById('newZone'),v=inp.value.trim();if(!v)return;var el=mk('div','zchip zx');el.dataset.val=v;el.textContent='📍 '+v;el.addEventListener('click',function(){selZone(el);});document.getElementById('zoneWrap').appendChild(el);inp.value='';selZone(el);}
+function getZone(){var e=document.querySelector('.zchip.on');return e?(e.dataset.val||e.textContent.trim()):''}
 function zc(z){return ZC[z]||'#475569';}
-
-function togProb(el){
-  if(el.classList.contains('on')){el.classList.remove('on');return;}
-  if(document.querySelectorAll('#probWrap .pchip.on').length>=2){toast('ניתן לבחור עד 2 בעיות','e');return;}
-  el.classList.add('on');
-}
+function togProb(el){if(el.classList.contains('on')){el.classList.remove('on');return;}if(document.querySelectorAll('#probWrap .pchip.on').length>=2){toast('עד 2 בעיות','e');return;}el.classList.add('on');}
 function getProbs(){return Array.from(document.querySelectorAll('#probWrap .pchip.on')).map(function(e){return e.dataset.val;}).join(', ');}
-
 function resetForm(){
   ['orderNum','sku','customer','handling'].forEach(function(id){document.getElementById(id).value='';});
   document.querySelectorAll('#empWrap .nchip.on').forEach(function(c){c.classList.remove('on');cs(c,eMap[c.dataset.name]||EP[0],false);});
   document.querySelectorAll('#inspWrap .nchip.on').forEach(function(c){c.classList.remove('on');cs(c,iMap[c.dataset.name]||IP[0],false);});
   document.querySelectorAll('.zchip.on,.pchip.on').forEach(function(c){c.classList.remove('on');});
 }
-
 function numOnly(el){el.value=el.value.replace(/[^0-9\-]/g,'');}
-function mk(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt)e.textContent=txt;return e;}
-
+function updateBadge(){var d=new Date(),days=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];document.getElementById('dayBadge').textContent='📅 '+days[d.getDay()]+' | '+d.toLocaleDateString('he-IL');}
 var tt;
 function toast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' show';clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('show');},3800);}
 function updateCount(){document.querySelectorAll('#recCount').forEach(function(e){e.textContent=records.length;});}
 
-// ── RECORDS ─────────────────────────────────────────────
+// ── RECORDS ──────────────────────────────────────────────
 var recOpen=false;
 function toggleRec(){
   recOpen=!recOpen;
@@ -491,6 +682,11 @@ function renderRec(){
   el.innerHTML=records.map(function(r,i){
     var ep=eMap[r.employee],ip=iMap[r.inspector];
     var es=ep?'color:'+ep.s+';font-weight:700':'',is=ip?'color:'+ip.s+';font-weight:700':'';
+    var adminBtns=isAdmin
+      ?'<div class="admin-actions">'+
+        '<button class="btn-edit" onclick=\'openEdit('+JSON.stringify(r).replace(/'/g,"&#39;")+')\'>✏️ עריכה</button>'+
+        '<button class="btn-del" onclick="deleteRecord(\''+r._docId+'\',\''+r.orderNum+'\')">🗑️ מחיקה</button>'+
+      '</div>':''
     return '<div class="rcard'+(i===0?' new':'')+'">'+
       '<div class="rhead"><div class="rnum">📄 '+r.orderNum+'</div><div class="rdate">'+r.date+'</div></div>'+
       (r.sku?'<div class="rrow"><span>מק"ט</span><span class="rval">'+r.sku+'</span></div>':'')+
@@ -500,15 +696,14 @@ function renderRec(){
       '<div class="rrow"><span>בעיה</span><span class="rval" style="color:#dc2626">'+r.problems+'</span></div>'+
       '<div class="rrow"><span>טיפול</span><span class="rval">'+r.handling+'</span></div>'+
       '<div class="rrow"><span>בקר</span><span class="rval" style="'+is+'">'+r.inspector+'</span></div>'+
-    '</div>';
+      adminBtns+'</div>';
   }).join('');
 }
 
 // ── TABLE ────────────────────────────────────────────────
 function openTable(){
   if(!records.length){toast('⚠️ אין דיווחים','e');return;}
-  var pc={};
-  records.forEach(function(r){r.problems.split(', ').forEach(function(p){if(p)pc[p]=(pc[p]||0)+1;});});
+  var pc={};records.forEach(function(r){r.problems.split(', ').forEach(function(p){if(p)pc[p]=(pc[p]||0)+1;});});
   var sum='<div class="sbar"><div class="si"><div class="sn" style="color:#2563eb">'+records.length+'</div><div class="sl">סה"כ</div></div><div class="sdiv"></div>';
   Object.keys(pc).forEach(function(k){sum+='<div class="si"><div class="sn" style="color:#dc2626">'+pc[k]+'</div><div class="sl">'+k+'</div></div>';});
   sum+='</div>';
@@ -535,23 +730,15 @@ function openTable(){
 function openMonthly(){
   var all=archive.concat(records);
   if(!all.length){toast('⚠️ אין נתונים','e');return;}
-  var bm={};
-  all.forEach(function(r){var m=r.monthKey||'לא ידוע';if(!bm[m])bm[m]=[];bm[m].push(r);});
+  var bm={};all.forEach(function(r){var m=r.monthKey||'לא ידוע';if(!bm[m])bm[m]=[];bm[m].push(r);});
   var html='';
   Object.keys(bm).sort().reverse().forEach(function(m){
     var recs=bm[m],be={};
-    recs.forEach(function(r){
-      if(!be[r.employee])be[r.employee]={c:0,p:{}};
-      be[r.employee].c++;
-      r.problems.split(', ').forEach(function(p){if(p)be[r.employee].p[p]=(be[r.employee].p[p]||0)+1;});
-    });
+    recs.forEach(function(r){if(!be[r.employee])be[r.employee]={c:0,p:{}};be[r.employee].c++;r.problems.split(', ').forEach(function(p){if(p)be[r.employee].p[p]=(be[r.employee].p[p]||0)+1;});});
     html+='<div class="msec"><div class="mlbl">📅 '+m+' — '+recs.length+' דיווחים</div>';
     Object.keys(be).sort(function(a,b){return be[b].c-be[a].c;}).forEach(function(emp){
-      var d=be[emp],ep=eMap[emp];
-      var tot=Object.keys(d.p).reduce(function(s,k){return s+d.p[k];},0);
-      html+='<div class="ecard"><div class="ename" style="'+(ep?'color:'+ep.s:'')+'">'+emp+
-        '<span class="etag">'+tot+' שגיאות</span>'+
-        '<span style="font-size:12px;color:var(--gray)">'+d.c+' דיווחים</span></div>';
+      var d=be[emp],ep=eMap[emp],tot=Object.keys(d.p).reduce(function(s,k){return s+d.p[k];},0);
+      html+='<div class="ecard"><div class="ename" style="'+(ep?'color:'+ep.s:'')+'">'+emp+'<span class="etag">'+tot+' שגיאות</span><span style="font-size:12px;color:var(--gray)">'+d.c+' דיווחים</span></div>';
       Object.keys(d.p).forEach(function(p){html+='<div class="erow"><span>'+p+'</span><span style="color:#dc2626;font-weight:700">'+d.p[p]+'×</span></div>';});
       html+='</div>';
     });
@@ -560,7 +747,6 @@ function openMonthly(){
   document.getElementById('monthlyContent').innerHTML=html||'<div style="text-align:center;color:var(--light);padding:30px">אין נתונים</div>';
   openModal('monthlyModal');
 }
-
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 </script>
