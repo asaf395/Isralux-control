@@ -397,7 +397,6 @@ function startFirebaseListener() {
   // מאזין לאוסף "records" ומסנן ליום היום
   db.collection('records')
     .where('dateKey', '==', today)
-    .orderBy('id', 'desc')
     .onSnapshot(function(snapshot) {
       // הצלחה — מחובר
       statusEl.className = 'status-bar connected';
@@ -408,6 +407,8 @@ function startFirebaseListener() {
       snapshot.forEach(function(doc) {
         records.push(doc.data());
       });
+      // מיון לפי זמן (חדש ראשון) — בצד הלקוח, ללא צורך ב-index
+      records.sort(function(a, b) { return b.id - a.id; });
 
       updateCount();
       if (recOpen) renderRec();
@@ -422,11 +423,12 @@ function startFirebaseListener() {
 
   // האזנה לארכיון (דיווחים מחודשים קודמים)
   db.collection('archive')
-    .orderBy('id', 'desc')
+    .where('dateKey', '!=', today)
     .limit(500)
     .onSnapshot(function(snapshot) {
       archive = [];
       snapshot.forEach(function(doc) { archive.push(doc.data()); });
+      archive.sort(function(a,b){return b.id-a.id;});
     }, function(err) {
       console.warn('Archive listener error:', err);
     });
@@ -724,4 +726,3 @@ document.addEventListener('click',function(e){
 </script>
 </body>
 </html>
-
