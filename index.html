@@ -306,6 +306,17 @@ textarea{resize:vertical;min-height:80px}
   <button class="rec-btn" id="recBtn" onclick="toggleRec()">📂 דיווחים של היום (<span id="recCount">0</span>)</button>
   <div id="recList" style="display:none"></div>
 
+  <div style="margin-top:10px">
+    <button onclick="showMyUID()" style="width:100%;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:12px;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;color:#475569;padding:11px;cursor:pointer">
+      🔍 הצג את ה-UID שלי
+    </button>
+    <div id="uidBox" style="display:none;margin-top:8px;background:#fff;border:1.5px solid #2563eb;border-radius:12px;padding:14px;font-size:12px;word-break:break-all;direction:ltr;text-align:center">
+      <div style="font-size:11px;color:#64748b;margin-bottom:6px;direction:rtl">העתק את ה-UID הזה ושים אותו כ-Document ID ב-admins:</div>
+      <div id="uidText" style="font-weight:700;color:#2563eb;font-size:13px;margin-bottom:8px"></div>
+      <button onclick="copyUID()" style="background:#2563eb;border:none;border-radius:8px;color:#fff;font-family:'Heebo',sans-serif;font-size:12px;font-weight:700;padding:6px 16px;cursor:pointer">📋 העתק</button>
+    </div>
+  </div>
+
   <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
     <button class="btn-main bmon" onclick="openMonthly()" style="flex:1">📈 דוח חודשי</button>
     <button class="btn-main badmin" onclick="openAdminPanel()" id="adminPanelBtn" style="flex:1;display:none">👥 ניהול מנהלים</button>
@@ -435,7 +446,7 @@ function signOut(){
 }
 
 function checkAdmin(uid){
-  db.collection('admins').doc(uid).get().then(function(doc){
+  db.collection('Admins').doc(uid).get().then(function(doc){
     isAdmin=doc.exists;
     document.getElementById('roleTag').style.display=isAdmin?'block':'none';
     document.getElementById('adminForm').style.display=isAdmin?'block':'none';
@@ -556,7 +567,7 @@ function saveEdit(){
 
 // ── ADMIN PANEL ──────────────────────────────────────────
 function openAdminPanel(){
-  db.collection('admins').get().then(function(snap){
+  db.collection('Admins').get().then(function(snap){
     var html='';
     snap.forEach(function(d){
       var data=d.data();
@@ -575,14 +586,14 @@ function addAdmin(){
   var uid=document.getElementById('newAdminUid').value.trim();
   var email=document.getElementById('newAdminEmail').value.trim();
   if(!uid){toast('הכנס UID','e');return;}
-  db.collection('admins').doc(uid).set({email:email,addedBy:currentUser.email,addedAt:new Date().toLocaleString('he-IL')})
+  db.collection('Admins').doc(uid).set({email:email,addedBy:currentUser.email,addedAt:new Date().toLocaleString('he-IL')})
     .then(function(){toast('✅ מנהל נוסף!','s');document.getElementById('newAdminUid').value='';document.getElementById('newAdminEmail').value='';openAdminPanel();})
     .catch(function(e){toast('❌ '+e.message,'e');});
 }
 function removeAdmin(uid){
   if(uid===currentUser.uid){toast('לא ניתן להסיר את עצמך','e');return;}
   if(!confirm('להסיר מנהל זה?'))return;
-  db.collection('admins').doc(uid).delete()
+  db.collection('Admins').doc(uid).delete()
     .then(function(){toast('✅ הוסר','s');openAdminPanel();})
     .catch(function(e){toast('❌ '+e.message,'e');});
 }
@@ -746,6 +757,18 @@ function openMonthly(){
   });
   document.getElementById('monthlyContent').innerHTML=html||'<div style="text-align:center;color:var(--light);padding:30px">אין נתונים</div>';
   openModal('monthlyModal');
+}
+function showMyUID(){
+  var box=document.getElementById('uidBox');
+  var txt=document.getElementById('uidText');
+  if(currentUser){
+    txt.textContent=currentUser.uid;
+    box.style.display='block';
+  }
+}
+function copyUID(){
+  var uid=document.getElementById('uidText').textContent;
+  navigator.clipboard.writeText(uid).then(function(){toast('✅ UID הועתק!','s');}).catch(function(){toast('העתק ידנית: '+uid,'i');});
 }
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
