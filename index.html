@@ -306,12 +306,11 @@ textarea{resize:vertical;min-height:80px}
   <button class="rec-btn" id="recBtn" onclick="toggleRec()">📂 דיווחים של היום (<span id="recCount">0</span>)</button>
   <div id="recList" style="display:none"></div>
 
-  <div style="margin-top:10px">
-    <button onclick="showMyUID()" style="width:100%;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:12px;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;color:#475569;padding:11px;cursor:pointer">
+  <div style="margin-top:10px" id="uidSection">
+    <button onclick="toggleUID()" style="width:100%;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:12px;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;color:#475569;padding:11px;cursor:pointer">
       🔍 הצג את ה-UID שלי
     </button>
     <div id="uidBox" style="display:none;margin-top:8px;background:#fff;border:1.5px solid #2563eb;border-radius:12px;padding:14px;font-size:12px;word-break:break-all;direction:ltr;text-align:center">
-      <div style="font-size:11px;color:#64748b;margin-bottom:6px;direction:rtl">העתק את ה-UID הזה ושים אותו כ-Document ID ב-admins:</div>
       <div id="uidText" style="font-weight:700;color:#2563eb;font-size:13px;margin-bottom:8px"></div>
       <button onclick="copyUID()" style="background:#2563eb;border:none;border-radius:8px;color:#fff;font-family:'Heebo',sans-serif;font-size:12px;font-weight:700;padding:6px 16px;cursor:pointer">📋 העתק</button>
     </div>
@@ -758,17 +757,25 @@ function openMonthly(){
   document.getElementById('monthlyContent').innerHTML=html||'<div style="text-align:center;color:var(--light);padding:30px">אין נתונים</div>';
   openModal('monthlyModal');
 }
-function showMyUID(){
-  var box=document.getElementById('uidBox');
-  var txt=document.getElementById('uidText');
-  if(currentUser){
-    txt.textContent=currentUser.uid;
-    box.style.display='block';
+var uidOpen = false;
+function toggleUID(){
+  var box = document.getElementById('uidBox');
+  var btn = document.querySelector('#uidSection button');
+  uidOpen = !uidOpen;
+  if(uidOpen){
+    document.getElementById('uidText').textContent = currentUser ? currentUser.uid : '';
+    box.style.display = 'block';
+    btn.textContent = '✕ סגור';
+  } else {
+    box.style.display = 'none';
+    btn.textContent = '🔍 הצג את ה-UID שלי';
   }
 }
 function copyUID(){
-  var uid=document.getElementById('uidText').textContent;
-  navigator.clipboard.writeText(uid).then(function(){toast('✅ UID הועתק!','s');}).catch(function(){toast('העתק ידנית: '+uid,'i');});
+  var uid = document.getElementById('uidText').textContent;
+  navigator.clipboard.writeText(uid)
+    .then(function(){ toast('✅ UID הועתק!','s'); })
+    .catch(function(){ toast('העתק ידנית: '+uid,'i'); });
 }
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
