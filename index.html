@@ -174,6 +174,17 @@ textarea{resize:vertical;min-height:80px}
 .uid-input{display:flex;gap:8px}
 .uid-input input{flex:1;font-size:13px}
 
+.req-card{background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;padding:14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.req-info{flex:1}
+.req-name{font-size:14px;font-weight:700;color:#1e293b}
+.req-email{font-size:11px;color:var(--light);margin-top:2px}
+.req-time{font-size:10px;color:var(--light)}
+.req-btns{display:flex;gap:6px;flex-shrink:0}
+.btn-approve{background:#dcfce7;border:1px solid #86efac;border-radius:8px;color:#16a34a;font-family:'Heebo',sans-serif;font-size:12px;font-weight:700;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.btn-approve:hover{background:#16a34a;color:#fff}
+.btn-deny{background:#fee2e2;border:1px solid #fecaca;border-radius:8px;color:#dc2626;font-family:'Heebo',sans-serif;font-size:12px;font-weight:700;padding:6px 12px;cursor:pointer}
+.btn-deny:hover{background:#dc2626;color:#fff}
+.requests-title{font-size:13px;font-weight:800;color:#d97706;margin-bottom:10px;padding:8px 12px;background:#fff7ed;border-radius:10px;border:1px solid #fed7aa;display:flex;align-items:center;gap:6px}
 @media print{.mhead,.macts,.btn-row,.rec-btn,.divider,.sec-title,.status-bar,.admin-actions,.viewer-banner{display:none!important}.modal{position:static!important;display:block!important;background:#fff!important}.mbox{margin:0}body{background:#fff}}
 </style>
 </head>
@@ -300,11 +311,27 @@ textarea{resize:vertical;min-height:80px}
     <div class="btn-row">
       <button class="btn-main bview" onclick="openTable()">📊 צפה בדיווחים</button>
     </div>
+    <!-- בקשת הרשאת מנהל -->
+    <div id="requestBox" style="margin-top:12px;background:linear-gradient(135deg,#eff6ff,#f5f3ff);border:1.5px solid #c7d2fe;border-radius:14px;padding:14px 16px">
+      <div style="font-size:13px;font-weight:700;color:#3730a3;margin-bottom:10px">🔐 רוצה הרשאות עריכה?</div>
+      <button id="reqBtn" onclick="requestAdminAccess()" style="width:100%;background:linear-gradient(135deg,#6366f1,#7c3aed);border:none;border-radius:12px;color:#fff;font-family:'Heebo',sans-serif;font-size:14px;font-weight:700;padding:12px;cursor:pointer">
+        📨 שלח בקשת הרשאה למנהל
+      </button>
+      <div id="reqStatus" style="display:none;margin-top:8px;font-size:12px;text-align:center;font-weight:600"></div>
+    </div>
   </div>
 
   <div class="divider"></div>
   <button class="rec-btn" id="recBtn" onclick="toggleRec()">📂 דיווחים של היום (<span id="recCount">0</span>)</button>
   <div id="recList" style="display:none"></div>
+
+  <div style="margin-top:10px">
+    <button id="uidToggleBtn" onclick="toggleUID()" style="width:100%;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:12px;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;color:#475569;padding:11px;cursor:pointer">🔍 הצג את ה-UID שלי</button>
+    <div id="uidBox" style="display:none;margin-top:8px;background:#fff;border:1.5px solid #2563eb;border-radius:12px;padding:14px;text-align:center">
+      <div id="uidText" style="font-weight:700;color:#2563eb;font-size:13px;margin-bottom:8px;word-break:break-all;direction:ltr"></div>
+      <button onclick="copyUID()" style="background:#2563eb;border:none;border-radius:8px;color:#fff;font-family:'Heebo',sans-serif;font-size:12px;font-weight:700;padding:6px 16px;cursor:pointer">📋 העתק</button>
+    </div>
+  </div>
 
   <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
     <button class="btn-main bmon" onclick="openMonthly()" style="flex:1">📈 דוח חודשי</button>
@@ -339,6 +366,9 @@ textarea{resize:vertical;min-height:80px}
       <div class="macts"><button class="bclose" onclick="closeModal('adminModal')">✕</button></div>
     </div>
     <div class="mscroll">
+      <!-- בקשות הממתינות לאישור -->
+      <div id="requestsList" style="margin-bottom:16px"></div>
+
       <div class="add-admin-box">
         <p>➕ הוסף מנהל חדש לפי UID<br><small style="font-weight:500;color:#6366f1">ה-UID נמצא ב-Firebase Console → Authentication → Users</small></p>
         <div class="uid-input">
@@ -435,7 +465,7 @@ function signOut(){
 }
 
 function checkAdmin(uid){
-  db.collection('admins').doc(uid).get().then(function(doc){
+  db.collection('Admins').doc(uid).get().then(function(doc){
     isAdmin=doc.exists;
     document.getElementById('roleTag').style.display=isAdmin?'block':'none';
     document.getElementById('adminForm').style.display=isAdmin?'block':'none';
@@ -443,6 +473,7 @@ function checkAdmin(uid){
     document.getElementById('viewerBanner').style.display=isAdmin?'none':'flex';
     document.getElementById('adminPanelBtn').style.display=isAdmin?'flex':'none';
     listenFirebase();
+    if(isAdmin) listenRequests();
   }).catch(function(){
     // אין הרשאת admin — צופה
     isAdmin=false;
@@ -554,20 +585,101 @@ function saveEdit(){
     .catch(function(e){toast('❌ '+e.message,'e');});
 }
 
+// ── REQUEST ADMIN ACCESS ─────────────────────────────────
+function requestAdminAccess(){
+  if(!currentUser) return;
+  var btn = document.getElementById('reqBtn');
+  var status = document.getElementById('reqStatus');
+  btn.disabled = true; btn.textContent = '⏳ שולח...';
+
+  db.collection('adminRequests').doc(currentUser.uid).set({
+    uid:         currentUser.uid,
+    email:       currentUser.email,
+    name:        currentUser.displayName || currentUser.email,
+    photo:       currentUser.photoURL || '',
+    requestedAt: new Date().toLocaleString('he-IL'),
+    status:      'pending'
+  }).then(function(){
+    btn.style.display = 'none';
+    status.style.display = 'block';
+    status.style.color = '#059669';
+    status.textContent = '✅ הבקשה נשלחה! המנהל יאשר אותך בקרוב.';
+  }).catch(function(e){
+    btn.disabled = false; btn.textContent = '📨 שלח בקשת הרשאה למנהל';
+    toast('❌ שגיאה: ' + e.message, 'e');
+  });
+}
+
+// ── LISTEN TO REQUESTS (for admins) ──────────────────────
+function listenRequests(){
+  db.collection('adminRequests').where('status','==','pending')
+    .onSnapshot(function(snap){
+      var badge = document.getElementById('adminPanelBtn');
+      if(snap.size > 0){
+        badge.textContent = '👥 ניהול מנהלים 🔴' + snap.size;
+      } else {
+        badge.textContent = '👥 ניהול מנהלים';
+      }
+    }, function(){});
+}
+
+// ── APPROVE / DENY ────────────────────────────────────────
+function approveRequest(uid, email, name){
+  db.collection('Admins').doc(uid).set({
+    email: email, name: name,
+    addedBy: currentUser.email,
+    addedAt: new Date().toLocaleString('he-IL')
+  }).then(function(){
+    return db.collection('adminRequests').doc(uid).update({status:'approved'});
+  }).then(function(){
+    toast('✅ ' + name + ' אושר כמנהל!', 's');
+    openAdminPanel();
+  }).catch(function(e){ toast('❌ ' + e.message, 'e'); });
+}
+
+function denyRequest(uid, name){
+  if(!confirm('לדחות את הבקשה של ' + name + '?')) return;
+  db.collection('adminRequests').doc(uid).update({status:'denied'})
+    .then(function(){ toast('🚫 הבקשה נדחתה', 'i'); openAdminPanel(); })
+    .catch(function(e){ toast('❌ ' + e.message, 'e'); });
+}
+
 // ── ADMIN PANEL ──────────────────────────────────────────
 function openAdminPanel(){
-  db.collection('admins').get().then(function(snap){
-    var html='';
+  // Load pending requests
+  db.collection('adminRequests').where('status','==','pending').get().then(function(snap){
+    var reqHtml = '';
+    if(!snap.empty){
+      reqHtml = '<div class="requests-title">🔔 בקשות הרשאה ממתינות (' + snap.size + ')</div>';
+      snap.forEach(function(d){
+        var r = d.data();
+        reqHtml += '<div class="req-card">' +
+          '<div class="req-info">' +
+            '<div class="req-name">' + (r.name||r.email) + '</div>' +
+            '<div class="req-email">' + r.email + '</div>' +
+            '<div class="req-time">' + (r.requestedAt||'') + '</div>' +
+          '</div>' +
+          '<div class="req-btns">' +
+            '<button class="btn-approve" onclick="approveRequest(\'' + r.uid + '\',\'' + r.email + '\',\'' + (r.name||r.email) + '\')">✅ אשר</button>' +
+            '<button class="btn-deny" onclick="denyRequest(\'' + r.uid + '\',\'' + (r.name||r.email) + '\')">✕</button>' +
+          '</div></div>';
+      });
+    }
+    document.getElementById('requestsList').innerHTML = reqHtml;
+  });
+
+  // Load admins list
+  db.collection('Admins').get().then(function(snap){
+    var html = '';
     snap.forEach(function(d){
-      var data=d.data();
-      html+='<div class="admin-card">'+
-        '<div class="admin-info">'+
-        '<div class="admin-email">'+(data.email||'ללא אימייל')+'</div>'+
+      var data = d.data();
+      html += '<div class="admin-card">' +
+        '<div class="admin-info"><div class="admin-email">'+(data.email||'ללא אימייל')+'</div>'+
         '<div class="admin-uid">UID: '+d.id+'</div></div>'+
-        '<button class="btn-remove-admin" onclick="removeAdmin(\''+d.id+'\')">הסר</button>'+
+        '<button class="btn-remove-admin" onclick="removeAdmin(\''+d.id+'\')">הסר</button>' +
       '</div>';
     });
-    document.getElementById('adminList').innerHTML=html||'<div style="color:var(--light);text-align:center;padding:20px">אין מנהלים</div>';
+    document.getElementById('adminList').innerHTML = html || '<div style="color:var(--light);text-align:center;padding:20px">אין מנהלים</div>';
   });
   openModal('adminModal');
 }
@@ -575,14 +687,14 @@ function addAdmin(){
   var uid=document.getElementById('newAdminUid').value.trim();
   var email=document.getElementById('newAdminEmail').value.trim();
   if(!uid){toast('הכנס UID','e');return;}
-  db.collection('admins').doc(uid).set({email:email,addedBy:currentUser.email,addedAt:new Date().toLocaleString('he-IL')})
+  db.collection('Admins').doc(uid).set({email:email,addedBy:currentUser.email,addedAt:new Date().toLocaleString('he-IL')})
     .then(function(){toast('✅ מנהל נוסף!','s');document.getElementById('newAdminUid').value='';document.getElementById('newAdminEmail').value='';openAdminPanel();})
     .catch(function(e){toast('❌ '+e.message,'e');});
 }
 function removeAdmin(uid){
   if(uid===currentUser.uid){toast('לא ניתן להסיר את עצמך','e');return;}
   if(!confirm('להסיר מנהל זה?'))return;
-  db.collection('admins').doc(uid).delete()
+  db.collection('Admins').doc(uid).delete()
     .then(function(){toast('✅ הוסר','s');openAdminPanel();})
     .catch(function(e){toast('❌ '+e.message,'e');});
 }
@@ -746,6 +858,32 @@ function openMonthly(){
   });
   document.getElementById('monthlyContent').innerHTML=html||'<div style="text-align:center;color:var(--light);padding:30px">אין נתונים</div>';
   openModal('monthlyModal');
+}
+var uidOpen = false;
+function toggleUID(){
+  uidOpen = !uidOpen;
+  var box = document.getElementById('uidBox');
+  var btn = document.getElementById('uidToggleBtn');
+  if(uidOpen){
+    document.getElementById('uidText').textContent = currentUser ? currentUser.uid : '';
+    box.style.display = 'block';
+    btn.textContent = '✕ סגור';
+    btn.style.background = '#fee2e2';
+    btn.style.borderColor = '#fecaca';
+    btn.style.color = '#dc2626';
+  } else {
+    box.style.display = 'none';
+    btn.textContent = '🔍 הצג את ה-UID שלי';
+    btn.style.background = '#f1f5f9';
+    btn.style.borderColor = '#cbd5e1';
+    btn.style.color = '#475569';
+  }
+}
+function copyUID(){
+  var uid = document.getElementById('uidText').textContent;
+  navigator.clipboard.writeText(uid)
+    .then(function(){ toast('✅ UID הועתק!','s'); })
+    .catch(function(){ toast(uid,'i'); });
 }
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
